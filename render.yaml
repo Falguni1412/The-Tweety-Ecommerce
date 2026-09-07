@@ -3,6 +3,7 @@ services:
     name: the-tweety
     env: python
     plan: free
+    rootDir: shopify
     buildCommand: "./build.sh"
     startCommand: "gunicorn shopify.wsgi:application --log-file -"
     envVars:
@@ -13,12 +14,4 @@ services:
       - key: DJANGO_ALLOWED_HOSTS
         value: "the-tweety.onrender.com"
       - key: DATABASE_URL
-        fromDatabase:
-          name: the-tweety-db
-          property: connectionString
-
-databases:
-  - name: the-tweety-db
-    plan: free
-    databaseName: thetweety
-    user: thetweety
+        sync: false
