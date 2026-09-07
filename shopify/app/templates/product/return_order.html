@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Return Order - Shopify{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'app:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'app:show_order' %}">My Orders</a></li>
+            <li class="breadcrumb-item active">Return Order</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-undo me-2"></i>Return Order #{{ order.order_number }}</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Refund amount of <strong>₹{{ order.total_price|floatformat:2 }}</strong> will be credited within 5-7 business days after pickup.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Reason for Return</label>
+                            {{ form.reason }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Additional Details</label>
+                            {{ form.reason_detail }}
+                            <p class="text-muted small mb-0">Please provide more details about why you want to return this order.</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Refund Method</label>
+                            {{ form.refund_method }}
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Bank Account (for refund)</label>
+                            {{ form.bank_account }}
+                            <p class="text-muted small mb-0">Required only for "Bank Account" refund method.</p>
+                        </div>
+
+                        <h6 class="mt-4">Order Items</h6>
+                        <div class="border rounded p-3 mb-4" style="background: var(--gray-100);">
+                            {% for item in order.order_items.all %}
+                            <div class="d-flex gap-3 py-2 {% if not forloop.last %}border-bottom{% endif %}">
+                                {% if item.product_image %}
+                                <img src="{{ item.product_image.url }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;">
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <p class="mb-0 small fw-semibold">{{ item.product_title }}</p>
+                                    <p class="mb-0 small text-muted">Qty: {{ item.quantity }} × ₹{{ item.price }}</p>
+                                </div>
+                                <strong class="small">₹{{ item.total }}</strong>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <a href="{% url 'app:order_detail' order.id %}" class="btn btn-outline-secondary flex-grow-1">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary flex-grow-1">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Return Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

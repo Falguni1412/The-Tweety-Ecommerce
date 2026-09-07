@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Return Request - Shopify{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-undo me-2"></i>Return Request Details</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row mb-3">
+                        <div class="col-sm-6">
+                            <p class="text-muted mb-1 small">Return ID</p>
+                            <p class="fw-semibold">#RET{{ ret.id.hex[:8].upper }}</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="text-muted mb-1 small">Order</p>
+                            <p class="fw-semibold">
+                                <a href="{% url 'app:order_detail' ret.order.id %}">#{{ ret.order.order_number }}</a>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-6">
+                            <p class="text-muted mb-1 small">Status</p>
+                            <span class="badge bg-primary fs-6">{{ ret.get_status_display }}</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <p class="text-muted mb-1 small">Refund Amount</p>
+                            <p class="fw-semibold text-success">₹{{ ret.refund_amount|floatformat:2 }}</p>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-muted mb-1 small">Reason</p>
+                        <p class="fw-semibold">{{ ret.get_reason_display }}</p>
+                        {% if ret.reason_detail %}
+                        <p class="text-muted">{{ ret.reason_detail }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-muted mb-1 small">Refund Method</p>
+                        <p class="fw-semibold">{{ ret.get_refund_method_display }}</p>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Our team will contact you within 24-48 hours to schedule the pickup.
+                    </div>
+                    <a href="{% url 'app:show_order' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

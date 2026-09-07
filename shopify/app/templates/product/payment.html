@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% block title %}Payment - Shopify{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'app:show_cart' %}" class="text-decoration-none">Cart</a></li>
+            <li class="breadcrumb-item active">Payment</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header Card -->
+            <div class="card mb-4" data-aos="fade-up" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); border: none; color: white;">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fas fa-shield-alt"></i>
+                                <span class="fw-semibold">Secure Payment</span>
+                            </div>
+                            <p class="mb-0 opacity-75">Order #{{ order.order_number }}</p>
+                        </div>
+                        <div class="text-end">
+                            <p class="mb-0 opacity-75">Total Amount</p>
+                            <h2 class="mb-0 fw-bold">₹{{ order.total_price }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card" data-aos="fade-up">
+                        <div class="card-body p-4">
+                            <form method="post" action="{% url 'app:process_payment' order.id %}" id="paymentForm">
+                                {% csrf_token %}
+                                <input type="hidden" name="payment_type" id="selected_payment_type" value="card">
+
+                                <h5 class="mb-3">Select Payment Method</h5>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-6 col-md-3">
+                                        <div class="payment-method-card text-center active" onclick="selectPayment('card')">
+                                            <i class="fas fa-credit-card payment-icon"></i>
+                                            <p class="mb-0 fw-semibold small">Card</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="payment-method-card text-center" onclick="selectPayment('upi')">
+                                            <i class="fas fa-mobile-alt payment-icon"></i>
+                                            <p class="mb-0 fw-semibold small">UPI</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="payment-method-card text-center" onclick="selectPayment('netbanking')">
+                                            <i class="fas fa-university payment-icon"></i>
+                                            <p class="mb-0 fw-semibold small">Net Banking</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="payment-method-card text-center" onclick="selectPayment('wallet')">
+                                            <i class="fas fa-wallet payment-icon"></i>
+                                            <p class="mb-0 fw-semibold small">Wallet</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card Form -->
+                                <div id="card_form" class="payment-form">
+                                    <div class="p-4" style="background: #f8fafc; border-radius: 12px;">
+                                        <h6 class="mb-3"><i class="fas fa-credit-card me-2"></i>Card Details</h6>
+                                        <div class="mb-3">
+                                            <label class="form-label">Card Number</label>
+                                            <input type="text" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCardNumber(this)" name="card_number">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Card Holder Name</label>
+                                            <input type="text" class="form-control" placeholder="Name on card" name="card_holder">
+                                        </div>
+                                        <div class="row g-3">
+                                            <div class="col-6">
+                                                <label class="form-label">Expiry Date</label>
+                                                <input type="text" class="form-control" placeholder="MM/YYYY" maxlength="7" oninput="formatExpiry(this)" name="expiry_date">
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label">CVV</label>
+                                                <input type="password" class="form-control" placeholder="•••" maxlength="4" name="cvv">
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2 mt-3">
+                                            <i class="fas fa-lock text-success"></i>
+                                            <small class="text-muted">Your card details are secured with 256-bit SSL encryption</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- UPI Form -->
+                                <div id="upi_form" class="payment-form" style="display: none;">
+                                    <div class="p-4" style="background: #f8fafc; border-radius: 12px;">
+                                        <h6 class="mb-3"><i class="fas fa-mobile-alt me-2"></i>UPI ID</h6>
+                                        <div class="mb-3">
+                                            <label class="form-label">UPI ID</label>
+                                            <input type="text" class="form-control" placeholder="yourname@upi" name="upi_id">
+                                        </div>
+                                        <div class="alert alert-info py-2">
+                                            <i class="fas fa-info-circle me-2"></i>You will receive a payment request on your UPI app
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Net Banking Form -->
+                                <div id="netbanking_form" class="payment-form" style="display: none;">
+                                    <div class="p-4" style="background: #f8fafc; border-radius: 12px;">
+                                        <h6 class="mb-3"><i class="fas fa-university me-2"></i>Select Bank</h6>
+                                        <div class="mb-3">
+                                            <label class="form-label">Bank Name</label>
+                                            <select class="form-select" name="bank">
+                                                <option value="">Select Bank</option>
+                                                <option value="sbi">State Bank of India</option>
+                                                <option value="hdfc">HDFC Bank</option>
+                                                <option value="icici">ICICI Bank</option>
+                                                <option value="axis">Axis Bank</option>
+                                                <option value="kotak">Kotak Mahindra Bank</option>
+                                                <option value="pnb">Punjab National Bank</option>
+                                                <option value="bob">Bank of Baroda</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Wallet Form -->
+                                <div id="wallet_form" class="payment-form" style="display: none;">
+                                    <div class="p-4" style="background: #f8fafc; border-radius: 12px;">
+                                        <h6 class="mb-3"><i class="fas fa-wallet me-2"></i>Select Wallet</h6>
+                                        <div class="row g-3">
+                                            <div class="col-6">
+                                                <label class="payment-method-card w-100 text-center" style="padding: 16px;">
+                                                    <input type="radio" name="wallet" value="paytm" class="d-none">
+                                                    <i class="fas fa-mobile-alt" style="font-size: 1.5rem; color: #00BAF2;"></i>
+                                                    <p class="mb-0 small mt-2">Paytm</p>
+                                                </label>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="payment-method-card w-100 text-center" style="padding: 16px;">
+                                                    <input type="radio" name="wallet" value="phonepe" class="d-none">
+                                                    <i class="fas fa-mobile-alt" style="font-size: 1.5rem; color: #5F259F;"></i>
+                                                    <p class="mb-0 small mt-2">PhonePe</p>
+                                                </label>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="payment-method-card w-100 text-center" style="padding: 16px;">
+                                                    <input type="radio" name="wallet" value="gpay" class="d-none">
+                                                    <i class="fab fa-google" style="font-size: 1.5rem; color: #4285F4;"></i>
+                                                    <p class="mb-0 small mt-2">Google Pay</p>
+                                                </label>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="payment-method-card w-100 text-center" style="padding: 16px;">
+                                                    <input type="radio" name="wallet" value="amazon" class="d-none">
+                                                    <i class="fab fa-amazon" style="font-size: 1.5rem; color: #FF9900;"></i>
+                                                    <p class="mb-0 small mt-2">Amazon Pay</p>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-success btn-lg w-100 py-3 mt-4" style="font-size: 1.1rem;">
+                                    <i class="fas fa-lock me-2"></i>Pay ₹{{ order.total_price }}
+                                </button>
+
+                                <div class="text-center mt-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-shield-alt me-1"></i>Your payment is secured with 256-bit SSL encryption
+                                    </small>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card" style="position: sticky; top: 100px;" data-aos="fade-up" data-aos-delay="100">
+                        <div class="card-body p-4">
+                            <h5 class="mb-3">Order Summary</h5>
+                            {% for item in order.items.all %}
+                            <div class="d-flex align-items-center gap-3 py-2 {% if not forloop.last %}border-bottom{% endif %}">
+                                <div style="width: 50px; height: 50px; background: #f1f5f9; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                                    {% if item.product.product_image %}
+                                    <img src="{{ item.product.product_image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <p class="mb-0 small fw-semibold">{{ item.product.title }}</p>
+                                    <small class="text-muted">Qty: {{ item.quantity }}</small>
+                                </div>
+                                <strong class="small">₹{{ item.get_total }}</strong>
+                            </div>
+                            {% endfor %}
+
+                            <hr>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Subtotal</span>
+                                <span>₹{{ order.total_price }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Tax</span>
+                                <span>Included</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <h5 class="mb-0">Total</h5>
+                                <h4 class="text-primary mb-0">₹{{ order.total_price }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

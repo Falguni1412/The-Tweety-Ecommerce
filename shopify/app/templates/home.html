@@ -1,0 +1,358 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Shopify - Premium Online Shopping{% endblock %}
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6 hero-content" data-aos="fade-right">
+                <div class="hero-badge">
+                    <i class="fas fa-bolt"></i>
+                    <span>New Arrivals 2026</span>
+                </div>
+                <h1 class="hero-title">
+                    Discover The Best <span>Shopping Experience</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Explore premium products with exclusive deals. Quality guaranteed,
+                    fast delivery, and hassle-free returns on every order.
+                </p>
+                <div class="hero-buttons">
+                    <a href="{% url 'app:show_prod' %}" class="btn btn-white btn-lg">
+                        <i class="fas fa-shopping-bag"></i> Shop Now
+                    </a>
+                    <a href="{% url 'app:register' %}" class="btn btn-outline" style="border-color: rgba(255,255,255,0.3); color: white;">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">10M+</div>
+                        <div class="hero-stat-label">Happy Customers</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">500K+</div>
+                        <div class="hero-stat-label">Products</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">50+</div>
+                        <div class="hero-stat-label">Countries</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6" data-aos="fade-left">
+                <div class="hero-image">
+                    <div class="hero-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800&q=80" alt="Shopping" class="rounded-3">
+                    </div>
+                    <div class="hero-float-card card-1">
+                        <div class="hero-float-icon success">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <div class="hero-float-text">
+                            <h6>Free Delivery</h6>
+                            <p>On orders above ₹500</p>
+                        </div>
+                    </div>
+                    <div class="hero-float-card card-2">
+                        <div class="hero-float-icon primary">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="hero-float-text">
+                            <h6>Secure Payment</h6>
+                            <p>100% Protected</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Promo Banners -->
+<section class="promo-banners">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="0">
+                <a href="#" class="promo-card">
+                    <div class="promo-icon blue"><i class="fas fa-truck"></i></div>
+                    <div class="promo-content">
+                        <h5>Free Shipping</h5>
+                        <p>On orders over ₹500</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
+                <a href="#" class="promo-card">
+                    <div class="promo-icon orange"><i class="fas fa-undo"></i></div>
+                    <div class="promo-content">
+                        <h5>Easy Returns</h5>
+                        <p>7-day return policy</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
+                <a href="#" class="promo-card">
+                    <div class="promo-icon green"><i class="fas fa-shield-alt"></i></div>
+                    <div class="promo-content">
+                        <h5>Secure Payment</h5>
+                        <p>100% secure checkout</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
+                <a href="#" class="promo-card">
+                    <div class="promo-icon purple"><i class="fas fa-headset"></i></div>
+                    <div class="promo-content">
+                        <h5>24/7 Support</h5>
+                        <p>Dedicated support team</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recently Viewed (personalized) -->
+{% if recently_viewed %}
+<section class="py-5">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <div>
+                <h2 class="section-title">
+                    <i class="fas fa-history text-primary"></i> Recently Viewed
+                </h2>
+                <p class="section-subtitle">Continue where you left off</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            {% for product in recently_viewed %}
+            <div class="col-6 col-md-3 col-lg-3" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}00">
+                {% include 'product/_product_card.html' with product=product %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Flash Sale Section -->
+{% if deals %}
+<section class="py-5">
+    <div class="container">
+        <div class="flash-sale" data-aos="fade-up">
+            <div class="flash-sale-header">
+                <div class="flash-sale-title">
+                    <div class="flash-sale-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div>
+                        <h3>Flash Sale</h3>
+                        <p class="mb-0 opacity-75">Limited time offer - ends in</p>
+                    </div>
+                </div>
+                <div class="flash-sale-timer">
+                    <div class="flash-timer-block">
+                        <div class="flash-timer-value" id="hours">08</div>
+                        <div class="flash-timer-label">Hours</div>
+                    </div>
+                    <div class="flash-timer-block">
+                        <div class="flash-timer-value" id="minutes">45</div>
+                        <div class="flash-timer-label">Minutes</div>
+                    </div>
+                    <div class="flash-timer-block">
+                        <div class="flash-timer-value" id="seconds">30</div>
+                        <div class="flash-timer-label">Seconds</div>
+                    </div>
+                </div>
+            </div>
+            <div class="row g-4">
+                {% for product in deals %}
+                <div class="col-6 col-md-3">
+                    <a href="{% url 'app:pro_detail' product.pk %}" class="text-decoration-none text-reset">
+                        <div class="product-card h-100" style="background: white; color: var(--dark);">
+                            <div class="product-image-wrapper">
+                                {% if product.product_image %}
+                                <img src="{{ product.product_image.url }}" alt="{{ product.title }}" class="product-image">
+                                {% endif %}
+                                {% if product.discount_percent > 0 %}
+                                <div class="product-badge discount">{{ product.discount_percent }}% OFF</div>
+                                {% endif %}
+                            </div>
+                            <div class="product-info">
+                                <p class="product-brand">{{ product.brand }}</p>
+                                <h6 class="product-name">{{ product.title|truncatewords:8 }}</h6>
+                                <div class="product-price">
+                                    <span class="product-price-current">₹{{ product.discounted_price }}</span>
+                                    {% if product.selling_price > product.discounted_price %}
+                                    <span class="product-price-original">₹{{ product.selling_price }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Shop by Category -->
+<section class="py-5" style="background: white;">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <div>
+                <h2 class="section-title">Shop by Category</h2>
+                <p class="section-subtitle">Explore our wide range of products</p>
+            </div>
+            <a href="{% url 'app:show_prod' %}" class="section-link">View All <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="row g-4">
+            {% for cat in categories %}
+            <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}00">
+                <a href="{% url 'app:products_by_category' cat.slug %}" class="category-card">
+                    <div class="category-icon">
+                        {% if cat.slug == 'electronics' or cat.slug == 'laptops' or cat.slug == 'smartphones' %}
+                        <i class="fas fa-laptop"></i>
+                        {% elif cat.slug == 'audio' %}
+                        <i class="fas fa-headphones"></i>
+                        {% elif cat.slug == 'wearables' %}
+                        <i class="fas fa-clock"></i>
+                        {% elif cat.slug == 'cameras' %}
+                        <i class="fas fa-camera"></i>
+                        {% elif cat.slug == 'mens-fashion' or cat.slug == 'womens-fashion' %}
+                        <i class="fas fa-tshirt"></i>
+                        {% elif cat.slug == 'footwear' %}
+                        <i class="fas fa-shoe-prints"></i>
+                        {% elif cat.slug == 'home-kitchen' %}
+                        <i class="fas fa-home"></i>
+                        {% elif cat.slug == 'sports-fitness' %}
+                        <i class="fas fa-futbol"></i>
+                        {% else %}
+                        <i class="fas fa-tag"></i>
+                        {% endif %}
+                    </div>
+                    <h6 class="category-name">{{ cat.name }}</h6>
+                    <p class="category-count">{{ cat.get_product_count }} Products</p>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products -->
+{% if featured %}
+<section class="py-5">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <div>
+                <h2 class="section-title"><i class="fas fa-star text-warning"></i> Featured Products</h2>
+                <p class="section-subtitle">Handpicked deals just for you</p>
+            </div>
+            <a href="{% url 'app:show_prod' %}" class="section-link">View All <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="row g-4">
+            {% for product in featured %}
+            <div class="col-6 col-md-3 col-lg-3" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}50">
+                {% include 'product/_product_card.html' with product=product %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Bestsellers -->
+{% if bestsellers %}
+<section class="py-5" style="background: white;">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <div>
+                <h2 class="section-title"><i class="fas fa-fire text-danger"></i> Bestsellers</h2>
+                <p class="section-subtitle">Most popular products right now</p>
+            </div>
+            <a href="{% url 'app:show_prod' %}?sort=popularity" class="section-link">View All <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="row g-4">
+            {% for product in bestsellers %}
+            <div class="col-6 col-md-3 col-lg-3" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}50">
+                {% include 'product/_product_card.html' with product=product %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- New Arrivals -->
+{% if new_arrivals %}
+<section class="py-5">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <div>
+                <h2 class="section-title"><i class="fas fa-sparkles text-success"></i> New Arrivals</h2>
+                <p class="section-subtitle">Latest products just landed</p>
+            </div>
+            <a href="{% url 'app:show_prod' %}?sort=newest" class="section-link">View All <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="row g-4">
+            {% for product in new_arrivals %}
+            <div class="col-6 col-md-3 col-lg-3" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}50">
+                {% include 'product/_product_card.html' with product=product %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Top Rated -->
+{% if top_rated %}
+<section class="py-5" style="background: white;">
+    <div class="container">
+        <div class="section-header" data-aos="fade-up">
+            <div>
+                <h2 class="section-title"><i class="fas fa-award text-warning"></i> Top Rated</h2>
+                <p class="section-subtitle">Customer favorites with the highest ratings</p>
+            </div>
+            <a href="{% url 'app:show_prod' %}?sort=rating" class="section-link">View All <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="row g-4">
+            {% for product in top_rated %}
+            <div class="col-6 col-md-3 col-lg-3" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}50">
+                {% include 'product/_product_card.html' with product=product %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Newsletter -->
+<section class="py-5">
+    <div class="container">
+        <div class="newsletter" data-aos="fade-up">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <h3 class="mb-2">Subscribe to Our Newsletter</h3>
+                    <p class="mb-0 opacity-75">Get exclusive deals, new arrivals, and more delivered straight to your inbox!</p>
+                </div>
+                <div class="col-lg-5 mt-4 mt-lg-0">
+                    <form class="d-flex gap-2">
+                        <input type="email" class="form-control" placeholder="Enter your email">
+                        <button type="submit" class="btn btn-white">
+                            Subscribe <i class="fas fa-paper-plane ms-2"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

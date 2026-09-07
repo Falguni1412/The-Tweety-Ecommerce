@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}My Profile - Shopify{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Home</a></li>
+            <li class="breadcrumb-item active">Profile</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Profile Card -->
+        <div class="col-lg-4">
+            <div class="card text-center" data-aos="fade-right">
+                <div class="card-body p-5">
+                    <div style="width: 120px; height: 120px; background: linear-gradient(135deg, #2563eb 0%, #f97316 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 3rem; font-weight: 700; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);">
+                        {{ user.username|slice:":1"|upper }}
+                    </div>
+                    <h4 class="mb-1">{{ user.username }}</h4>
+                    <p class="text-muted mb-3">{{ user.email }}</p>
+                    {% if user.phone %}
+                    <p class="text-muted small mb-0"><i class="fas fa-phone me-2"></i>{{ user.phone }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card mt-4" data-aos="fade-right" data-aos-delay="100">
+                <div class="card-body p-4">
+                    <h5 class="mb-3">Quick Stats</h5>
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">Total Orders</span>
+                        <span class="fw-bold text-primary">{{ total_orders }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">Saved Addresses</span>
+                        <span class="fw-bold text-primary">{{ addresses|length }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2">
+                        <span class="text-muted">Member Since</span>
+                        <span class="fw-bold">{{ user.created_at|date:"M Y" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Recent Orders -->
+            <div class="card mb-4" data-aos="fade-left">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0"><i class="fas fa-shopping-bag me-2 text-primary"></i>Recent Orders</h4>
+                        <a href="{% url 'app:show_order' %}" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+
+                    {% if orders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Date</th>
+                                    <th>Items</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <td><a href="{% url 'app:receipt' order.id %}" class="text-primary text-decoration-none fw-semibold">{{ order.order_number }}</a></td>
+                                    <td>{{ order.created_at|date:"d M Y" }}</td>
+                                    <td>{{ order.get_item_count }}</td>
+                                    <td class="fw-semibold">₹{{ order.total_price }}</td>
+                                    <td>
+                                        {% if order.status == 'confirmed' %}
+                                        <span class="badge badge-success">Confirmed</span>
+                                        {% elif order.status == 'pending' %}
+                                        <span class="badge badge-warning">Pending</span>
+                                        {% else %}
+                                        <span class="badge badge-primary">{{ order.status|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted mb-0">No orders yet.</p>
+                        <a href="{% url 'app:show_prod' %}" class="btn btn-primary mt-3">Start Shopping</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Addresses -->
+            <div class="card" data-aos="fade-left" data-aos-delay="100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0"><i class="fas fa-map-marker-alt me-2 text-danger"></i>Saved Addresses</h4>
+                        <a href="{% url 'app:add_address' %}" class="btn btn-sm btn-success"><i class="fas fa-plus me-1"></i>Add New</a>
+                    </div>
+
+                    {% if addresses %}
+                    <div class="row g-3">
+                        {% for address in addresses %}
+                        <div class="col-md-6">
+                            <div style="background: #f8fafc; border-radius: 12px; padding: 16px;">
+                                {% if address.is_default %}
+                                <span class="badge badge-primary mb-2">Default</span>
+                                {% endif %}
+                                <h6 class="mb-2">{{ address.name }}</h6>
+                                <p class="text-muted small mb-2">
+                                    {{ address.locality }}, {{ address.city }}<br>
+                                    {{ address.state }} - {{ address.pincode }}
+                                </p>
+                                {% if address.phone %}
+                                <p class="text-muted small mb-0"><i class="fas fa-phone me-1"></i>{{ address.phone }}</p>
+                                {% endif %}
+                                <div class="mt-3">
+                                    <a href="{% url 'app:update_add' address.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                    <a href="{% url 'app:delete_add' address.pk %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this address?')">Delete</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted mb-3">No addresses saved yet.</p>
+                        <a href="{% url 'app:add_address' %}" class="btn btn-success"><i class="fas fa-plus me-2"></i>Add Address</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

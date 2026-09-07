@@ -1,0 +1,438 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.title }} - Shopify{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'app:show_prod' %}" class="text-decoration-none">Shop</a></li>
+            {% if product.category %}
+            <li class="breadcrumb-item">
+                <a href="{% url 'app:products_by_category' product.category.slug %}" class="text-decoration-none">
+                    {{ product.category.name }}
+                </a>
+            </li>
+            {% endif %}
+            <li class="breadcrumb-item active">{{ product.title|truncatewords:5 }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-5">
+        <!-- Product Image -->
+        <div class="col-lg-6" data-aos="fade-right">
+            <div class="card">
+                <div class="card-body p-4" style="background: #f8fafc;">
+                    {% if product.product_image %}
+                    <img id="productImage" src="{{ product.product_image.url }}" alt="{{ product.title }}"
+                         class="img-fluid w-100" style="border-radius: 12px; max-height: 500px; object-fit: contain;">
+                    {% else %}
+                    <div style="height: 400px; display: flex; align-items: center; justify-content: center; background: white; font-size: 6rem; border-radius: 12px;">📦</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Delivery info -->
+            <div class="card mt-3">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="fas fa-truck text-primary" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <p class="mb-0 small fw-semibold">Free Delivery</p>
+                            <p class="mb-0 text-muted small">Get it by {{ product.created_at|date:"M d" }} - {{ product.created_at|date:"M d"|add_days:4 }}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="fas fa-undo text-success" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <p class="mb-0 small fw-semibold">{{ product.return_days }}-Day Returns</p>
+                            <p class="mb-0 text-muted small">Easy returns & exchanges</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="col-lg-6" data-aos="fade-left">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge badge-primary">{{ product.brand }}</span>
+                {% if product.is_bestseller %}<span class="badge bg-warning text-dark">⭐ Bestseller</span>{% endif %}
+                {% if product.is_new %}<span class="badge bg-success">🆕 New</span>{% endif %}
+                {% if product.is_featured %}<span class="badge bg-info">Featured</span>{% endif %}
+            </div>
+            <h1 class="mb-3">{{ product.title }}</h1>
+
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="d-flex align-items-center gap-1">
+                    <div class="product-stars" style="color: #f59e0b;">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= product.rating %}<i class="fas fa-star"></i>
+                            {% else %}<i class="far fa-star"></i>{% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="fw-semibold">{{ product.rating }}</span>
+                </div>
+                <span class="text-muted">|</span>
+                <a href="#reviews" class="text-decoration-none text-muted">{{ product.num_reviews }} reviews</a>
+                <span class="text-muted">|</span>
+                <span class="text-muted">{{ product.num_sold|default:0 }} sold</span>
+            </div>
+
+            <div class="d-flex align-items-baseline gap-3 mb-3 p-3 rounded" style="background: var(--gray-100);">
+                <h2 class="text-primary mb-0" id="currentPrice">₹{{ product.discounted_price|floatformat:0 }}</h2>
+                {% if product.selling_price > product.discounted_price %}
+                <h5 class="text-muted text-decoration-line-through mb-0" id="comparePrice">₹{{ product.selling_price|floatformat:0 }}</h5>
+                <span class="badge badge-danger" id="discountBadge">{{ product.discount_percent }}% OFF</span>
+                {% endif %}
+            </div>
+
+            <p class="mb-4 text-secondary">{{ product.description }}</p>
+
+            <!-- Stock Status -->
+            <div class="mb-3">
+                {% if product.is_out_of_stock %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-1"></i> Out of Stock
+                </div>
+                {% elif product.is_low_stock %}
+                <span class="badge bg-warning text-dark">
+                    <i class="fas fa-fire me-1"></i> Only {{ product.stock }} left in stock!
+                </span>
+                {% else %}
+                <span class="badge badge-success">
+                    <i class="fas fa-check-circle me-1"></i> {{ product.stock }} in stock
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Variants (color/size/storage) -->
+            {% if variant_attrs %}
+            {% for attr_name, options in variant_attrs.items %}
+            <div class="mb-3">
+                <h6 class="text-muted mb-2">{{ attr_name }}:</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for opt in options %}
+                    <button type="button" class="btn btn-outline-secondary variant-option"
+                            data-attribute="{{ attr_name }}" data-option-id="{{ opt.option_id }}"
+                            data-option-value="{{ opt.option_value }}"
+                            data-variant-id="{{ opt.variant_id }}"
+                            onclick="selectVariant(this, '{{ attr_name }}')">
+                        {% if opt.color_code %}
+                        <span class="d-inline-block rounded-circle me-1" style="width:16px;height:16px;background:{{ opt.color_code }};border:1px solid #ddd;vertical-align:middle;"></span>
+                        {% endif %}
+                        {{ opt.option_value }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <!-- Quantity & Add to Cart -->
+            {% if request.session.is_log_in %}
+            {% if not product.is_out_of_stock %}
+            <form action="{% url 'app:add_to_cart' product.id %}" method="post" class="mb-3" id="addToCartForm">
+                {% csrf_token %}
+                <input type="hidden" name="variant_id" id="selectedVariantId" value="">
+                <div class="row g-2">
+                    <div class="col-auto">
+                        <label class="form-label small text-muted">Quantity:</label>
+                        <div class="input-group" style="width: 130px;">
+                            <button type="button" class="btn btn-outline-secondary"
+                                    onclick="changeQty(-1)">−</button>
+                            <input type="number" name="quantity" id="quantity" class="form-control text-center"
+                                   value="1" min="1" max="{{ product.stock }}">
+                            <button type="button" class="btn btn-outline-secondary"
+                                    onclick="changeQty(1)">+</button>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <label class="form-label small text-muted d-block">&nbsp;</label>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-grow-1">
+                                <i class="fas fa-cart-plus me-2"></i> Add to Cart
+                            </button>
+                            <a href="{% url 'app:add_to_cart' product.id %}" class="btn btn-success flex-grow-1"
+                               onclick="event.preventDefault(); document.getElementById('addToCartForm').action='{% url 'app:place_order' %}'; this.closest('form') || document.getElementById('addToCartForm').submit();">
+                                <i class="fas fa-bolt me-2"></i> Buy Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            {% endif %}
+
+            <div class="d-flex gap-2 mb-4">
+                <button class="btn btn-outline-danger flex-grow-1" id="wishlistDetailBtn"
+                        onclick="toggleWishlist(this, {{ product.id }})">
+                    <i class="far fa-heart me-2"></i> Add to Wishlist
+                </button>
+                <a href="{% url 'app:add_to_compare' product.id %}" class="btn btn-outline-secondary flex-grow-1">
+                    <i class="fas fa-balance-scale me-2"></i> Compare
+                </a>
+            </div>
+            {% else %}
+            <a href="{% url 'app:login' %}" class="btn btn-primary btn-lg w-100 mb-3">
+                <i class="fas fa-sign-in-alt me-2"></i> Login to Purchase
+            </a>
+            {% endif %}
+
+            <!-- Trust badges -->
+            <div class="card">
+                <div class="card-body p-3">
+                    <div class="row g-3 text-center">
+                        <div class="col-3">
+                            <i class="fas fa-truck text-primary mb-1" style="font-size: 1.3rem;"></i>
+                            <p class="mb-0 small fw-semibold">Free Delivery</p>
+                        </div>
+                        <div class="col-3">
+                            <i class="fas fa-undo text-primary mb-1" style="font-size: 1.3rem;"></i>
+                            <p class="mb-0 small fw-semibold">{{ product.return_days }}-Day Returns</p>
+                        </div>
+                        <div class="col-3">
+                            <i class="fas fa-shield-alt text-primary mb-1" style="font-size: 1.3rem;"></i>
+                            <p class="mb-0 small fw-semibold">Secure Payment</p>
+                        </div>
+                        <div class="col-3">
+                            <i class="fas fa-money-bill text-primary mb-1" style="font-size: 1.3rem;"></i>
+                            <p class="mb-0 small fw-semibold">{% if product.cash_on_delivery %}COD Available{% else %}No COD{% endif %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs: Description, Specs, Reviews -->
+    <ul class="nav nav-tabs mt-5" id="productTabs">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#descTab">
+                <i class="fas fa-info-circle me-1"></i> Description
+            </button>
+        </li>
+        {% if specs %}
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#specsTab">
+                <i class="fas fa-list me-1"></i> Specifications
+            </button>
+        </li>
+        {% endif %}
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#reviewsTab" id="reviews">
+                <i class="fas fa-star me-1"></i> Reviews ({{ all_reviews|length }})
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content card border-top-0" style="border-radius: 0 0 12px 12px;">
+        <div class="tab-pane fade show active p-4" id="descTab">
+            <h5>About this product</h5>
+            <p class="text-secondary">{{ product.description }}</p>
+        </div>
+
+        {% if specs %}
+        <div class="tab-pane fade p-4" id="specsTab">
+            <h5>Technical Specifications</h5>
+            <table class="table table-striped mt-3">
+                <tbody>
+                {% for name, value in specs.items %}
+                <tr>
+                    <th style="width: 200px;" class="text-muted">{{ name }}</th>
+                    <td><strong>{{ value }}</strong></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <div class="tab-pane fade p-4" id="reviewsTab">
+            <h5>Customer Reviews ({{ all_reviews|length }})</h5>
+            {% if all_reviews %}
+            <div class="row align-items-center my-4 p-3 rounded" style="background: var(--gray-100);">
+                <div class="col-md-3 text-center">
+                    <h1 class="text-primary">{{ product.rating }}</h1>
+                    <div class="product-stars mb-2" style="color: #f59e0b;">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= product.rating %}<i class="fas fa-star"></i>
+                            {% else %}<i class="far fa-star"></i>{% endif %}
+                        {% endfor %}
+                    </div>
+                    <p class="text-muted small mb-0">{{ all_reviews|length }} reviews</p>
+                </div>
+            </div>
+            {% for review in all_reviews %}
+            <div class="border-bottom py-3">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="user-avatar" style="width: 40px; height: 40px;">
+                        {{ review.user.username|slice:":1"|upper }}
+                    </div>
+                    <div>
+                        <strong>{{ review.user.username }}</strong>
+                        {% if review.verification_status == 'verified' %}
+                        <span class="badge bg-success ms-1"><i class="fas fa-check-circle"></i> Verified Purchase</span>
+                        {% endif %}
+                        <p class="text-muted small mb-0">{{ review.created_at|date:"M d, Y" }}</p>
+                    </div>
+                    <div class="ms-auto">
+                        <div class="product-stars" style="color: #f59e0b;">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}<i class="fas fa-star"></i>
+                                {% else %}<i class="far fa-star"></i>{% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <h6 class="mb-1">{{ review.title }}</h6>
+                <p class="text-secondary mb-2">{{ review.comment }}</p>
+                <button class="btn btn-sm btn-outline-secondary" onclick="markHelpful({{ review.id }}, this)">
+                    <i class="far fa-thumbs-up me-1"></i> Helpful (<span class="helpful-count">{{ review.helpful_count }}</span>)
+                </button>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="text-muted text-center py-4">No reviews yet. Be the first to review this product!</p>
+            {% endif %}
+
+            {% if review_form %}
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5>Write a Review</h5>
+                    <form method="post" action="{% url 'app:add_review' product.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Rating</label>
+                            <select name="rating" class="form-select" required>
+                                <option value="">Select rating</option>
+                                <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                                <option value="4">⭐⭐⭐⭐ Very Good</option>
+                                <option value="3">⭐⭐⭐ Good</option>
+                                <option value="2">⭐⭐ Fair</option>
+                                <option value="1">⭐ Poor</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            {{ review_form.title }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Your Review</label>
+                            {{ review_form.comment }}
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Review</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related %}
+    <section class="py-5 mt-4">
+        <div class="section-header" data-aos="fade-up">
+            <h2 class="section-title">You May Also Like</h2>
+        </div>
+        <div class="row g-4">
+            {% for p in related %}
+            <div class="col-6 col-md-3">
+                {% include 'product/partials/_product_card.html' with product=p %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function changeQty(delta) {
+    const inp = document.getElementById('quantity');
+    let v = parseInt(inp.value) || 1;
+    v = Math.max(1, v + delta);
+    inp.value = v;
+}
+
+let selectedVariants = {};
+
+function selectVariant(btn, attrName) {
+    document.querySelectorAll(`.variant-option[data-attribute="${attrName}"]`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedVariants[attrName] = {
+        option_id: btn.dataset.optionId,
+        variant_id: btn.dataset.variantId
+    };
+    // Pick the most specific variant ID
+    const variantIds = Object.values(selectedVariants).map(v => v.variant_id);
+    const finalVariant = variantIds[variantIds.length - 1];
+    document.getElementById('selectedVariantId').value = finalVariant || '';
+
+    // Update price via AJAX
+    fetch(`{% url 'app:variant_price' product.id %}?variant_id=${finalVariant}`)
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('currentPrice').textContent = '₹' + Math.round(data.price);
+            const cp = document.getElementById('comparePrice');
+            if (cp) cp.textContent = '₹' + Math.round(data.compare_price);
+            const db = document.getElementById('discountBadge');
+            if (db) db.textContent = data.discount + '% OFF';
+        });
+}
+
+// Set first option as active for each attribute
+document.addEventListener('DOMContentLoaded', () => {
+    const attrs = document.querySelectorAll('.variant-option');
+    if (attrs.length > 0) {
+        const firstAttr = attrs[0].dataset.attribute;
+        selectVariant(attrs[0], firstAttr);
+    }
+});
+
+// Wishlist toggle
+function toggleWishlist(btn, productId) {
+    fetch(`/api/wishlist/toggle/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.redirect) {
+            window.location.href = data.redirect;
+            return;
+        }
+        const icon = btn.querySelector('i');
+        if (data.in_wishlist) {
+            icon.classList.remove('far');
+            icon.classList.add('fas', 'text-danger');
+            btn.innerHTML = '<i class="fas fa-heart me-2 text-danger"></i> In Wishlist';
+        } else {
+            icon.classList.remove('fas', 'text-danger');
+            icon.classList.add('far');
+            btn.innerHTML = '<i class="far fa-heart me-2"></i> Add to Wishlist';
+        }
+    });
+}
+
+function markHelpful(reviewId, btn) {
+    fetch('{% url 'app:mark_review_helpful' %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `review_id=${reviewId}&is_helpful=true`
+    })
+    .then(r => r.json())
+    .then(data => {
+        const span = btn.querySelector('.helpful-count');
+        if (span) span.textContent = data.helpful_count;
+        btn.classList.add('text-primary');
+    });
+}
+</script>
+{% endblock %}

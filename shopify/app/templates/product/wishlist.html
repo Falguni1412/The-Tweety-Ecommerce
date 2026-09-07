@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}My Wishlist - Shopify{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4"><i class="fas fa-heart text-danger me-2"></i>My Wishlist ({{ wishlist.item_count }} items)</h1>
+
+    {% if items %}
+    <div class="row g-4">
+        {% for item in items %}
+        <div class="col-6 col-md-3">
+            <div class="product-card h-100">
+                <div class="product-image-wrapper">
+                    {% if item.product.product_image %}
+                    <img src="{{ item.product.product_image.url }}" alt="{{ item.product.title }}" class="product-image">
+                    {% endif %}
+                    {% if item.product.discount_percent > 0 %}
+                    <div class="product-badge discount">{{ item.product.discount_percent }}% OFF</div>
+                    {% endif %}
+                </div>
+                <div class="product-info">
+                    <p class="product-brand">{{ item.product.brand }}</p>
+                    <h6 class="product-name">
+                        <a href="{% url 'app:pro_detail' item.product.id %}">{{ item.product.title }}</a>
+                    </h6>
+                    <div class="product-price">
+                        <span class="product-price-current">₹{{ item.product.discounted_price|floatformat:0 }}</span>
+                        {% if item.product.selling_price > item.product.discounted_price %}
+                        <span class="product-price-original">₹{{ item.product.selling_price|floatformat:0 }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex gap-2 mt-2">
+                        <a href="{% url 'app:add_to_cart' item.product.id %}" class="btn btn-primary btn-sm flex-grow-1">
+                            <i class="fas fa-cart-plus me-1"></i> Add to Cart
+                        </a>
+                        <button class="btn btn-outline-danger btn-sm"
+                                onclick="toggleWishlist(this, {{ item.product.id }})">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                    <p class="text-muted small mt-2 mb-0">Added {{ item.added_at|date:"M d, Y" }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <div style="font-size: 6rem; opacity: 0.2;">💔</div>
+        <h3 class="mt-3 text-muted">Your wishlist is empty</h3>
+        <p class="text-muted">Save items you love and they'll appear here</p>
+        <a href="{% url 'app:show_prod' %}" class="btn btn-primary">
+            <i class="fas fa-shopping-bag me-2"></i> Start Shopping
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

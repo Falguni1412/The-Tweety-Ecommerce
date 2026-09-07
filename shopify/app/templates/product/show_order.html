@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}My Orders - Shopify{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Home</a></li>
+            <li class="breadcrumb-item active">My Orders</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">My Orders</h1>
+        <span class="badge bg-primary rounded-pill">{{ orders|length }} orders</span>
+    </div>
+
+    {% if orders %}
+    <div class="row g-3">
+        {% for order in orders %}
+        <div class="col-12" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}00">
+            <div class="card">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            <p class="text-muted small mb-1">Order</p>
+                            <h6 class="mb-0 text-primary fw-semibold">{{ order.order_number }}</h6>
+                        </div>
+                        <div class="col-md-2">
+                            <p class="text-muted small mb-1">Date</p>
+                            <h6 class="mb-0">{{ order.created_at|date:"d M Y" }}</h6>
+                        </div>
+                        <div class="col-md-2">
+                            <p class="text-muted small mb-1">Items</p>
+                            <h6 class="mb-0">{{ order.get_item_count }} items</h6>
+                        </div>
+                        <div class="col-md-2">
+                            <p class="text-muted small mb-1">Total</p>
+                            <h6 class="mb-0 text-success fw-semibold">₹{{ order.total_price }}</h6>
+                        </div>
+                        <div class="col-md-2">
+                            <p class="text-muted small mb-1">Status</p>
+                            {% if order.status == 'confirmed' %}
+                            <span class="badge badge-success"><i class="fas fa-check-circle me-1"></i>Confirmed</span>
+                            {% elif order.status == 'pending' %}
+                            <span class="badge badge-warning"><i class="fas fa-clock me-1"></i>Pending</span>
+                            {% elif order.status == 'delivered' %}
+                            <span class="badge badge-success"><i class="fas fa-box me-1"></i>Delivered</span>
+                            {% elif order.status == 'cancelled' %}
+                            <span class="badge badge-danger"><i class="fas fa-times me-1"></i>Cancelled</span>
+                            {% else %}
+                            <span class="badge badge-primary">{{ order.status|title }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <a href="{% url 'app:receipt' order.id %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-receipt me-1"></i>View Receipt
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <div style="font-size: 6rem; opacity: 0.3;">📦</div>
+            <h3 class="mt-3 text-muted">No Orders Yet</h3>
+            <p class="text-muted mb-4">Start shopping to see your orders here</p>
+            <a href="{% url 'app:show_prod' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-shopping-bag me-2"></i>Start Shopping
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

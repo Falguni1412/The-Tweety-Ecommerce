@@ -1,0 +1,365 @@
+{% extends 'base.html' %}
+{% block title %}Receipt #{{ order.order_number }} - Shopify{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <!-- Action Bar -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 no-print">
+        <a href="{% url 'app:show_prod' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+        </a>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-secondary">
+                <i class="fas fa-print me-2"></i>Print
+            </button>
+            <a href="{% url 'app:show_order' %}" class="btn btn-primary">
+                <i class="fas fa-box me-2"></i>My Orders
+            </a>
+        </div>
+    </div>
+
+    <!-- Receipt Container -->
+    <div class="receipt-wrapper" style="max-width: 900px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden;">
+
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #1e40af 100%); padding: 40px; color: white; text-align: center; position: relative; overflow: hidden;">
+            <!-- Background Pattern -->
+            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.1;">
+                <svg width="100%" height="100%">
+                    <pattern id="pattern" patternUnits="userSpaceOnUse" width="40" height="40">
+                        <circle cx="20" cy="20" r="2" fill="white"/>
+                    </pattern>
+                    <rect fill="url(#pattern)" width="100%" height="100%"/>
+                </svg>
+            </div>
+
+            <div style="position: relative; z-index: 1;">
+                <!-- Success Icon -->
+                <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; animation: pulse 2s infinite;">
+                    <i class="fas fa-check" style="font-size: 2.5rem;"></i>
+                </div>
+
+                <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 8px;">Payment Successful!</h1>
+                <p style="opacity: 0.9; font-size: 1.1rem; margin-bottom: 0;">Thank you for your order</p>
+
+                <!-- Order Number -->
+                <div style="margin-top: 24px; display: inline-block; background: rgba(255,255,255,0.15); padding: 12px 24px; border-radius: 50px;">
+                    <span style="opacity: 0.8; font-size: 0.9rem;">Order #</span>
+                    <span style="font-weight: 700; font-size: 1.1rem;">{{ order.order_number }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 40px;">
+
+            <!-- Order Info Cards -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <div style="background: #f8fafc; border-radius: 12px; padding: 20px; height: 100%;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                            <div style="width: 36px; height: 36px; background: #dbeafe; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #2563eb;">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <span style="font-weight: 600; color: #475569;">Order Date</span>
+                        </div>
+                        <p style="margin: 0; font-size: 1rem; color: #1e293b;">{{ order.created_at|date:"F d, Y" }}</p>
+                        <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #64748b;">{{ order.created_at|date:"h:i A" }}</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div style="background: #f8fafc; border-radius: 12px; padding: 20px; height: 100%;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                            <div style="width: 36px; height: 36px; background: #d1fae5; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #10b981;">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <span style="font-weight: 600; color: #475569;">Expected Delivery</span>
+                        </div>
+                        {% if order.expected_delivery %}
+                        <p style="margin: 0; font-size: 1rem; color: #10b981; font-weight: 600;">{{ order.expected_delivery|date:"F d, Y" }}</p>
+                        <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #64748b;">Within 4-5 business days</p>
+                        {% else %}
+                        <p style="margin: 0; color: #64748b;">Calculating...</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div style="background: #f8fafc; border-radius: 12px; padding: 20px; height: 100%;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                            <div style="width: 36px; height: 36px; background: #fef3c7; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #f59e0b;">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <span style="font-weight: 600; color: #475569;">Order Status</span>
+                        </div>
+                        {% if order.status == 'confirmed' %}
+                        <span class="badge badge-success"><i class="fas fa-check-circle me-1"></i>Confirmed</span>
+                        {% elif order.status == 'pending' %}
+                        <span class="badge badge-warning"><i class="fas fa-clock me-1"></i>Pending</span>
+                        {% else %}
+                        <span class="badge badge-primary">{{ order.status|title }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two Column Layout -->
+            <div class="row g-4">
+                <!-- Left: Items -->
+                <div class="col-lg-8">
+                    <h5 style="font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-shopping-bag text-primary"></i> Order Items
+                    </h5>
+
+                    <div style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                        <!-- Header -->
+                        <div style="display: grid; grid-template-columns: 3fr 1fr 1fr 1fr; padding: 16px 20px; background: #f8fafc; font-weight: 600; font-size: 0.85rem; color: #64748b; border-bottom: 1px solid #e2e8f0;">
+                            <div>Product</div>
+                            <div class="text-center">Qty</div>
+                            <div class="text-end">Price</div>
+                            <div class="text-end">Total</div>
+                        </div>
+
+                        <!-- Items -->
+                        {% for item in order.items.all %}
+                        <div style="display: grid; grid-template-columns: 3fr 1fr 1fr 1fr; padding: 16px 20px; align-items: center; border-bottom: 1px solid #f1f5f9;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 50px; height: 50px; background: #f1f5f9; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                                    {% if item.product.product_image %}
+                                    <img src="{{ item.product.product_image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% else %}
+                                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">📦</div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p style="margin: 0; font-weight: 500; color: #1e293b; font-size: 0.9rem;">{{ item.product.title }}</p>
+                                    <p style="margin: 0; font-size: 0.8rem; color: #64748b;">{{ item.product.brand }}</p>
+                                </div>
+                            </div>
+                            <div class="text-center" style="color: #475569;">{{ item.quantity }}</div>
+                            <div class="text-end" style="color: #475569;">₹{{ item.product.discounted_price }}</div>
+                            <div class="text-end" style="font-weight: 600; color: #1e293b;">₹{{ item.get_total }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Right: Summary & Payment -->
+                <div class="col-lg-4">
+                    <!-- Delivery Address -->
+                    <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <h6 style="font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-map-marker-alt text-danger"></i> Delivery Address
+                        </h6>
+                        {% if order.shipping_address %}
+                        <p style="margin: 0; font-weight: 500; color: #1e293b;">{{ order.shipping_address.name }}</p>
+                        <p style="margin: 4px 0 0 0; color: #64748b; font-size: 0.9rem; line-height: 1.6;">
+                            {{ order.shipping_address.locality }}<br>
+                            {{ order.shipping_address.city }}, {{ order.shipping_address.state }}<br>
+                            PIN: {{ order.shipping_address.pincode }}
+                            {% if order.shipping_address.phone %}
+                            <br><i class="fas fa-phone me-1" style="width: 16px;"></i>{{ order.shipping_address.phone }}
+                            {% endif %}
+                        </p>
+                        {% else %}
+                        <p style="margin: 0; color: #64748b;">No address provided</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Payment Details -->
+                    <div style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); border-radius: 12px; padding: 20px; color: white; margin-bottom: 20px;">
+                        <h6 style="font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-credit-card"></i> Payment Details
+                        </h6>
+
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                            <span style="opacity: 0.8;">Method</span>
+                            <span style="font-weight: 500;">
+                                {% if payment.payment_type == 'card' %}
+                                    <i class="fas fa-credit-card me-1"></i>{{ payment.card_type|default:"Card" }}
+                                {% elif payment.payment_type == 'upi' %}
+                                    <i class="fas fa-mobile-alt me-1"></i>UPI
+                                {% elif payment.payment_type == 'netbanking' %}
+                                    <i class="fas fa-university me-1"></i>Net Banking
+                                {% elif payment.payment_type == 'wallet' %}
+                                    <i class="fas fa-wallet me-1"></i>Wallet
+                                {% elif payment.payment_type == 'cod' %}
+                                    <i class="fas fa-money-bill me-1"></i>Cash on Delivery
+                                {% else %}
+                                    {{ payment.get_payment_type_display }}
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        {% if payment.card_last_four %}
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                            <span style="opacity: 0.8;">Card</span>
+                            <span style="font-weight: 500;">**** {{ payment.card_last_four }}</span>
+                        </div>
+                        {% endif %}
+
+                        {% if payment.upi_id %}
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                            <span style="opacity: 0.8;">UPI ID</span>
+                            <span style="font-weight: 500;">{{ payment.upi_id }}</span>
+                        </div>
+                        {% endif %}
+
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                            <span style="opacity: 0.8;">Transaction ID</span>
+                            <span style="font-weight: 500; font-family: monospace;">{{ payment.transaction_id }}</span>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="opacity: 0.8;">Status</span>
+                            <span class="badge" style="background: rgba(255,255,255,0.2); color: white;">
+                                <i class="fas fa-check-circle me-1"></i>{{ payment.status|title }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Price Summary -->
+                    <div style="background: #f8fafc; border-radius: 12px; padding: 20px;">
+                        <h6 style="font-weight: 600; margin-bottom: 16px;">Order Summary</h6>
+
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: #64748b;">Subtotal ({{ order.get_item_count }} items)</span>
+                            <span style="font-weight: 500;">₹{{ subtotal }}</span>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: #64748b;">Shipping</span>
+                            <span style="font-weight: 500;">
+                                {% if shipping == 0 %}
+                                <span style="color: #10b981;">FREE</span>
+                                {% else %}
+                                ₹{{ shipping }}
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+                            <span style="color: #64748b;">Tax (5%)</span>
+                            <span style="font-weight: 500;">₹{{ tax }}</span>
+                        </div>
+
+                        <div style="border-top: 2px solid #e2e8f0; padding-top: 16px; margin-top: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: 600; font-size: 1.1rem;">Total Paid</span>
+                                <span style="font-weight: 700; font-size: 1.5rem; color: #2563eb;">₹{{ order.total_price }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Timeline -->
+            <div class="mt-5">
+                <h5 style="font-weight: 600; margin-bottom: 20px;"><i class="fas fa-route text-primary me-2"></i>Order Tracking</h5>
+                <div style="display: flex; justify-content: space-between; position: relative;">
+                    <!-- Progress Line -->
+                    <div style="position: absolute; top: 20px; left: 40px; right: 40px; height: 4px; background: #e2e8f0; border-radius: 2px;"></div>
+                    <div style="position: absolute; top: 20px; left: 40px; width: {% if order.status != 'pending' %}50{% else %}0{% endif %}%; height: 4px; background: linear-gradient(90deg, #2563eb, #10b981); border-radius: 2px; transition: width 0.5s ease;"></div>
+
+                    <!-- Steps -->
+                    <div style="text-align: center; position: relative; z-index: 1;">
+                        <div style="width: 44px; height: 44px; background: {% if order.created_at %}#2563eb{% else %}#e2e8f0{% endif %}; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: white; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <span style="font-size: 0.85rem; font-weight: 500;">Ordered</span>
+                        <p style="font-size: 0.75rem; color: #64748b; margin: 4px 0 0 0;">{{ order.created_at|date:"d M" }}</p>
+                    </div>
+
+                    <div style="text-align: center; position: relative; z-index: 1;">
+                        <div style="width: 44px; height: 44px; background: {% if order.status != 'pending' %}#2563eb{% else %}#e2e8f0{% endif %}; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: white; {% if order.status != 'pending' %}box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);{% endif %}">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <span style="font-size: 0.85rem; font-weight: 500;">Confirmed</span>
+                        <p style="font-size: 0.75rem; color: #64748b; margin: 4px 0 0 0;">
+                            {% if order.confirmed_at %}{{ order.confirmed_at|date:"d M" }}{% else %}---{% endif %}
+                        </p>
+                    </div>
+
+                    <div style="text-align: center; position: relative; z-index: 1;">
+                        <div style="width: 44px; height: 44px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #94a3b8;">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <span style="font-size: 0.85rem; font-weight: 500; color: #94a3b8;">Processing</span>
+                        <p style="font-size: 0.75rem; color: #94a3b8; margin: 4px 0 0 0;">---</p>
+                    </div>
+
+                    <div style="text-align: center; position: relative; z-index: 1;">
+                        <div style="width: 44px; height: 44px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #94a3b8;">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <span style="font-size: 0.85rem; font-weight: 500; color: #94a3b8;">Shipped</span>
+                        <p style="font-size: 0.75rem; color: #94a3b8; margin: 4px 0 0 0;">---</p>
+                    </div>
+
+                    <div style="text-align: center; position: relative; z-index: 1;">
+                        <div style="width: 44px; height: 44px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #94a3b8;">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <span style="font-size: 0.85rem; font-weight: 500; color: #94a3b8;">Delivered</span>
+                        <p style="font-size: 0.75rem; color: #94a3b8; margin: 4px 0 0 0;">---</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Message -->
+            <div style="margin-top: 40px; padding: 30px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 16px;">
+                    <span style="animation: bounce 1s infinite; display: inline-block;">🎉</span>
+                </div>
+                <h4 style="color: #10b981; margin-bottom: 8px;">Order Placed Successfully!</h4>
+                <p style="color: #64748b; margin: 0;">
+                    {% if order.expected_delivery %}
+                    Your order will be delivered by <strong>{{ order.expected_delivery|date:"F d, Y" }}</strong>.
+                    {% else %}
+                    Your order is being processed. You'll receive updates via email.
+                    {% endif %}
+                </p>
+                <p style="color: #64748b; margin-top: 8px; font-size: 0.9rem;">
+                    <i class="fas fa-envelope me-1"></i> A confirmation email has been sent to your registered email address.
+                </p>
+            </div>
+
+            <!-- Help Section -->
+            <div style="margin-top: 30px; padding: 20px; background: #f8fafc; border-radius: 12px;">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h6 style="font-weight: 600; margin-bottom: 4px;"><i class="fas fa-question-circle text-primary me-2"></i>Need Help?</h6>
+                        <p style="color: #64748b; margin: 0; font-size: 0.9rem;">Contact our support team for any queries regarding your order.</p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <a href="mailto:support@shopify.com" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-headset me-1"></i> Contact Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@media print {
+    .no-print { display: none !important; }
+    .footer { display: none !important; }
+    body { background: white !important; }
+    .receipt-wrapper {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        max-width: 100% !important;
+    }
+}
+</style>
+{% endblock %}

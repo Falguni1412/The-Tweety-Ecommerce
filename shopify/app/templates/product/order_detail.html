@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Order {{ order.order_number }} - Shopify{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'app:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'app:show_order' %}">My Orders</a></li>
+            <li class="breadcrumb-item active">{{ order.order_number }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <!-- Order Status -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h4 class="mb-1">Order #{{ order.order_number }}</h4>
+                            <p class="text-muted mb-0">Placed on {{ order.created_at|date:"F d, Y \a\\t g:i A" }}</p>
+                        </div>
+                        <div>
+                            <span class="badge
+                                {% if order.status == 'delivered' %}bg-success
+                                {% elif order.status == 'cancelled' %}bg-danger
+                                {% elif order.status == 'returned' %}bg-secondary
+                                {% elif order.status == 'out_for_delivery' %}bg-info
+                                {% else %}bg-warning text-dark{% endif %}
+                                fs-6 px-3 py-2">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Tracking Timeline -->
+                    <div class="order-timeline mt-4">
+                        {% for event in tracking_events %}
+                        <div class="timeline-item {% if event.is_completed %}completed{% endif %}">
+                            <div class="timeline-marker">
+                                {% if event.is_completed %}
+                                <i class="fas fa-check"></i>
+                                {% else %}
+                                <i class="fas fa-circle"></i>
+                                {% endif %}
+                            </div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">{{ event.title }}</h6>
+                                <p class="text-muted mb-0 small">{{ event.description }}</p>
+                                {% if event.location %}
+                                <p class="text-muted mb-0 small"><i class="fas fa-map-marker-alt me-1"></i>{{ event.location }}</p>
+                                {% endif %}
+                                <p class="text-muted mb-0 small">{{ event.timestamp|date:"F d, Y \a\\t g:i A" }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-box me-2"></i>Order Items</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% for item in order.order_items.all %}
+                    <div class="d-flex p-3 border-bottom align-items-center gap-3">
+                        {% if item.product_image %}
+                        <img src="{{ item.product_image.url }}" alt="{{ item.product_title }}"
+                             style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px;">
+                        {% else %}
+                        <div style="width:70px;height:70px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:2rem;">📦</div>
+                        {% endif %}
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ item.product_title }}</h6>
+                            <p class="text-muted small mb-1">{{ item.product_brand }}</p>
+                            {% if item.variant_info %}
+                            <p class="text-muted small mb-0">{{ item.variant_info }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            <p class="fw-bold mb-1">₹{{ item.total|floatformet:2 }}</p>
+                            <p class="text-muted small mb-0">Qty: {{ item.quantity }}</p>
+                            <p class="text-muted small mb-0">₹{{ item.price }} each</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Order Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal</span>
+                        <span>₹{{ order.subtotal|floatformat:2 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Delivery</span>
+                        <span>{% if order.shipping_cost > 0 %}₹{{ order.shipping_cost|floatformat:2 }}{% else %}<span class="text-success">FREE</span>{% endif %}</span>
+                    </div>
+                    {% if order.discount_amount > 0 %}
+                    <div class="d-flex justify-content-between mb-2 text-success">
+                        <span>Discount</span>
+                        <span>-₹{{ order.discount_amount|floatformat:2 }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tax (GST 5%)</span>
+                        <span>₹{{ order.tax_amount|floatformat:2 }}</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Total</strong>
+                        <strong class="text-primary">₹{{ order.total_price|floatformat:2 }}</strong>
+                    </div>
+                    {% if order.coupon_used %}
+                    <p class="text-success small mt-2 mb-0">
+                        <i class="fas fa-tag me-1"></i>Coupon "{{ order.coupon_used }}" applied
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Shipping Address -->
+            {% if order.shipping_address %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Delivery Address</h5>
+                </div>
+                <div class="card-body">
+                    <strong>{{ order.shipping_address.name }}</strong>
+                    <p class="text-muted mb-0">
+                        {{ order.shipping_address.locality }}<br>
+                        {{ order.shipping_address.city }}, {{ order.shipping_address.state }} {{ order.shipping_address.pincode }}<br>
+                        Phone: {{ order.shipping_address.phone }}
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Actions -->
+            <div class="d-grid gap-2">
+                {% if order.can_cancel %}
+                <a href="{% url 'app:cancel_order' order.id %}" class="btn btn-outline-danger">
+                    <i class="fas fa-times-circle me-2"></i>Cancel Order
+                </a>
+                {% endif %}
+                {% if order.can_return %}
+                <a href="{% url 'app:return_order' order.id %}" class="btn btn-outline-warning">
+                    <i class="fas fa-undo me-2"></i>Return / Replace
+                </a>
+                {% endif %}
+                {% if order.status == 'delivered' %}
+                <a href="#" class="btn btn-outline-primary">
+                    <i class="fas fa-download me-2"></i>Download Invoice
+                </a>
+                {% endif %}
+                <a href="{% url 'app:show_order' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Orders
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.order-timeline { position: relative; padding-left: 30px; }
+.order-timeline::before {
+    content: ''; position: absolute; left: 11px; top: 0; bottom: 0;
+    width: 2px; background: var(--gray-300);
+}
+.timeline-item { position: relative; padding-bottom: 24px; }
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-marker {
+    position: absolute; left: -30px; top: 0; width: 24px; height: 24px;
+    background: var(--gray-200); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; color: var(--gray-500);
+}
+.timeline-item.completed .timeline-marker {
+    background: var(--success); color: white;
+}
+</style>
+{% endblock %}
