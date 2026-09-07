@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     rootDir: shopify
-    buildCommand: "./build.sh"
+    buildCommand: "pip install -r requirements.txt && python manage.py migrate --noinput && python manage.py collectstatic --noinput"
     startCommand: "gunicorn shopify.wsgi:application --log-file -"
     envVars:
       - key: DJANGO_DEBUG
