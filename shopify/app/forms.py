@@ -548,4 +548,3 @@ class ProfileForm(forms.ModelForm):
                 'class': 'form-control'
             }),
         }
-```
