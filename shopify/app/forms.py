@@ -1,3 +1,4 @@
+```python
 import re
 from django import forms
 from django.core.validators import RegexValidator
@@ -65,7 +66,8 @@ class LoginForm(forms.Form):
             try:
                 user = User.objects.get(username=username)
 
-                if not user.check_password(password):
+                # Custom User model stores password directly
+                if user.password != password:
                     raise forms.ValidationError(
                         'Invalid username or password.'
                     )
@@ -546,3 +548,4 @@ class ProfileForm(forms.ModelForm):
                 'class': 'form-control'
             }),
         }
+```
